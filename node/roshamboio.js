@@ -21,11 +21,18 @@ io.sockets.on('connection', function (socket) {
     });
   }
   
-  socket.on("throw", function(throw) {
-    socket.set("throw", throw);
+  socket.on("throw", function(the_throw) {
+    socket.set("throw", the_throw);
     
-    var winner = findWinner(session.sockets);
-  }
+    var results = getResults(session.sockets);
+    
+    if(results != false) {
+      for(var i = 0; i < 2; i++) {
+        session.sockets[i].emit("result", results[i]);
+      }
+    }
+    
+  })
 });
 
 
@@ -37,7 +44,7 @@ function addToSession(socket) {
   if(sessions.length == 0) {
     session = {sockets: new Array(socket), status: "waiting"};
     sessions.push(session);
-    
+
   } else {
     sessions.forEach(function(thesession) {
       if(thesession.sockets.length == 1) {
@@ -56,8 +63,53 @@ function addToSession(socket) {
   return session;
 }
 
-function findWinner(sockets) {
-  rock beats scissors, scissors beats paper, paper beats rock
-  
-  sockets[0].get("throw")
+function getResults(sockets) {
+  //rock beats scissors, scissors beats paper, paper beats rock
+  if(sockets.length == 2) {
+    
+    var throw_one;
+    var throw_two;
+    
+    sockets[0].get("throw", function (err, data) {
+      throw_one = data;
+    });
+    
+    sockets[1].get("throw", function (err, data) {
+      throw_two = data;
+    });
+    
+    
+    if(throw_one != null && throw_two != null) {
+    
+      sockets[0].set("throw", null);
+      sockets[1].set("throw", null);
+    
+      if(throw_one == throw_two)
+        return new Array("tie", "tie");
+    
+      else if(throw_one == "rock" && throw_two == "scissors")
+        return new Array("winner", "loser");
+      
+      else if(throw_one == "rock" && throw_two == "paper")
+        return new Array("loser", "winner");
+      
+      else if(throw_one == "scissors" && throw_two == "rock")
+        return new Array("loser", "winner");
+      
+      else if(throw_one == "scissors" && throw_two == "paper")
+        return new Array("winner", "loser");
+      
+      else if(throw_one == "paper" && throw_two == "rock")
+        return new Array("winner", "loser");
+      
+      else if(throw_one == "paper" && throw_two == "scissors")
+        return new Array("loser", "winner");
+        
+      else
+        return new Array("error", "error");
+      
+    } else {
+      return false;
+    }
+  }
 }

@@ -7,14 +7,55 @@
   <meta name="description" content="">
   
   <script src="http://roshamboio.com:5000/socket.io/socket.io.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script>
-  var socket = io.connect('http://roshamboio.com:5000');
-  socket.on('message', function (data) {
-    console.log(data);
+  
+  $(function() {
+    var socket = io.connect('http://roshamboio.com:5000');
+    var status_box = $("#status");
+    
+    socket.on('connected', function () {
+      status_box.text("Connected! Waiting for another player.");
+    });
+    
+    socket.on('ready', function () {
+      status_box.text("Ready to play! Throw!");
+      $('input').removeAttr('disabled');
+    });
+    
+    socket.on('result', function (data) {
+      status_box.text("Result: " + data + ", throw again!");
+      $('input').removeAttr('disabled');
+    });
+    
+    socket.on('message', function (data) {
+      console.log(data);
+    });
+    
+    
+    $('#rock').click(function() {
+      socket.emit("throw", "rock");
+      $('input').attr('disabled', 'disabled');
+    });
+    
+    $('#scissors').click(function() {
+      socket.emit("throw", "scissors");
+      $('input').attr('disabled', 'disabled');
+    });
+    
+    $('#paper').click(function() {
+      socket.emit("throw", "paper");
+      $('input').attr('disabled', 'disabled');
+    });
+    
   });
 </script>
 </head>
 <body>
-
+<h1>Let's play Roshambo!</h1>
+<div id="status"> </div>
+<input id="rock" type="button" disabled="disabled" value="Throw Rock!">
+<input id="paper" type="button" disabled="disabled" value="Throw Paper!">
+<input id="scissors" type="button" disabled="disabled" value="Throw Scissors!">
 </body>
 </html>
