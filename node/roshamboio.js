@@ -16,9 +16,8 @@ io.sockets.on('connection', function (socket) {
   console.log("Connected client to session");
   
   if(session.status == "ready"){
-    session.sockets.forEach(function(socket) {
-      socket.emit("ready");
-    });
+    session.sockets[0].emit("ready");
+    session.sockets[1].emit("ready");
   }
   
   socket.on("throw", function(the_throw) {
@@ -27,12 +26,16 @@ io.sockets.on('connection', function (socket) {
     var results = getResults(session.sockets);
     
     if(results != false) {
-      for(var i = 0; i < 2; i++) {
-        session.sockets[i].emit("result", results[i]);
-      }
+      session.sockets[0].emit("result", results[0]);
+      session.sockets[1].emit("result", results[1]);
     }
     
-  })
+  });
+  
+  socket.on('disconnect', function() {
+    if(session.sockets.length > 1)
+      removeFromSession(session, socket);
+  });
 });
 
 
@@ -54,8 +57,8 @@ function addToSession(socket) {
       }
     });
     
-    if(session == "") {
-      session = {sockets: array(socket), status: "waiting"};
+    if(session == null) {
+      session = {sockets: new Array(socket), status: "waiting"};
       sessions.push(session);
     }
   }
@@ -112,4 +115,17 @@ function getResults(sockets) {
       return false;
     }
   }
+}
+
+function removeFromSession(session, socket){
+  
+  if(session.sockets[0].id == socket.id)
+    session.sockets.splice(0, 1);
+    
+  if(session.sockets[1].id == socket.id)
+    session.sockets.splice(1, 1);
+  
+  session.sockets[0].emit('player_disconnected');
+  session.sockets[0].set("throw", null);
+  session.status = "waiting";
 }

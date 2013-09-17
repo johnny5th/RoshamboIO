@@ -16,11 +16,17 @@
     
     socket.on('connected', function () {
       status_box.text("Connected! Waiting for another player.");
+      $('input').attr('disabled', 'disabled');
     });
     
     socket.on('ready', function () {
       status_box.text("Ready to play! Throw!");
       $('input').removeAttr('disabled');
+    });
+    
+    socket.on('player_disconnected', function () {
+      status_box.text("Player disconnected! Waiting for another player.");
+      $('input').attr('disabled', 'disabled');
     });
     
     socket.on('result', function (data) {
@@ -35,16 +41,19 @@
     
     $('#rock').click(function() {
       socket.emit("throw", "rock");
+      status_box.text("Threw rock, waiting for other player");
       $('input').attr('disabled', 'disabled');
     });
     
     $('#scissors').click(function() {
       socket.emit("throw", "scissors");
+      status_box.text("Threw scissors, waiting for other player");
       $('input').attr('disabled', 'disabled');
     });
     
     $('#paper').click(function() {
       socket.emit("throw", "paper");
+      status_box.text("Threw paper, waiting for other player");
       $('input').attr('disabled', 'disabled');
     });
     
@@ -53,9 +62,9 @@
 </head>
 <body>
 <h1>Let's play Roshambo!</h1>
-<div id="status"> </div>
-<input id="rock" type="button" disabled="disabled" value="Throw Rock!">
-<input id="paper" type="button" disabled="disabled" value="Throw Paper!">
-<input id="scissors" type="button" disabled="disabled" value="Throw Scissors!">
+<div id="status">Cannot connect </div>
+<input id="rock" type="button" value="Throw Rock!">
+<input id="paper" type="button" value="Throw Paper!">
+<input id="scissors" type="button" value="Throw Scissors!">
 </body>
 </html>
